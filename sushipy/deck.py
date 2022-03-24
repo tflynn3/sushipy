@@ -39,6 +39,7 @@ class Deck:
     def deal(self):
         return self.cards.pop()
 
-my_deck = Deck()
-my_deck.shuffle()
-print(my_deck)
+
+# my_deck = Deck()
+# my_deck.shuffle()
+# print(my_deck)
