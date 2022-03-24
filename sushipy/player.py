@@ -1,5 +1,5 @@
 import enum
-
+from random import shuffle
 
 class Player(object):
     def __init__(self) -> None:
@@ -36,7 +36,10 @@ class Player(object):
 
         self.select_card(self.hand[selection])
         del self.hand[selection]
-        
+
+    def random_selection(self):
+        shuffle(self.hand)
+        self.select_card(self.hand.pop())
 
 
 # print(len(Player()*2))

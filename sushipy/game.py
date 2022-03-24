@@ -1,4 +1,3 @@
-from numpy import number
 from deck import Deck
 from player import Player
 from card import Card, CardType
@@ -11,23 +10,35 @@ class Round:
         self.deal()
 
     def play(self):
-        while len(self.players[0].hand) > 1:
+        while len(self.players[0].hand) > 0:
             for i, player in enumerate(self.players):
                 print(f'Player {i} making selection')
                 player.make_selection()
 
-            print("Passing Decks...")
             # store last hand before replaced by the passed hand
             temp_hand = self.players[-1].hand
 
             # pass hand
             for i in range(1, len(self.players)):
-                print(f"Setting {i} players deck")
                 self.players[i].hand = self.players[i-1].hand
 
             # set first hand as last hand
-            print("Setting first player deck...")
             self.players[0].hand = temp_hand
+
+    def simulate_play(self):
+        while len(self.players[0].hand) > 0:
+            for i, player in enumerate(self.players):
+                player.random_selection()
+
+            # store last hand before replaced by the passed hand
+            temp_hand = self.players[-1].hand
+
+            # pass hand
+            for i in range(1, len(self.players)):
+                self.players[i].hand = self.players[i-1].hand
+
+            # set first hand as last hand
+            self.players[0].hand = temp_hand    
 
 
     
@@ -56,24 +67,72 @@ class Game:
         # Set number of players
         self.players = list(Player()*n_players)
 
-        # Start game
-        #self.start()
-
     def start(self):
         self.round1 = Round(self.deck, self.players)
         self.round1.play()
-        self.score_round(self.players)
-        # self.reset_player_hands()
+        self.score_round()
+        self.reset_player_hands()
 
-        # self.round2 = Round(self.round1.deck, self.players)
-        # self.round2.play()
-        # self.score_round(self.players)
-        # self.reset_player_hands()
+        self.round2 = Round(self.round1.deck, self.players)
+        self.round2.play()
+        self.score_round()
+        self.reset_player_hands()
 
-        # self.round3 = Round(self.round2.deck, self.players)
-        # self.round3.play()
-        # self.score_round(self.players)
-        #self.score_final(self.players)
+        self.round3 = Round(self.round2.deck, self.players)
+        self.round3.play()
+        self.score_round()
+        self.score_final()
+
+    def simulate(self, print_rounds=False):
+        self.round1 = Round(self.deck, self.players)
+        self.round1.simulate_play()
+        self.score_round()
+
+        if print_rounds:
+            print('-'*100)
+            print('Round 1')
+            print('-'*100)
+            for i, player in enumerate(self.players):
+                print(f'Player {i+1} Played Hand\n{player.played_cards}')
+                print(f'Player {i+1} Score: {player.score}')
+            print('-'*100)
+
+        self.reset_player_hands()
+
+        self.round2 = Round(self.round1.deck, self.players)
+        self.round2.simulate_play()
+        self.score_round()
+        if print_rounds:
+            print('-'*100)
+            print('Round 2')
+            print('-'*100)
+            for i, player in enumerate(self.players):
+                print(f'Player {i+1} Played Hand\n{player.played_cards}')
+                print(f'Player {i+1} Score: {player.score}')
+            print('-'*100)
+        self.reset_player_hands()
+
+        self.round3 = Round(self.round2.deck, self.players)
+        self.round3.simulate_play()
+        self.score_round()
+        if print_rounds:
+            print('-'*100)
+            print('Round 3')
+            print('-'*100)
+            for i, player in enumerate(self.players):
+                print(f'Player {i+1} Played Hand\n{player.played_cards}')
+                print(f'Player {i+1} Score: {player.score}')
+            print('-'*100)
+        
+        self.score_final()
+        if print_rounds:
+            print('-'*100)
+            print('Final Score')
+            print('-'*100)
+            for i, player in enumerate(self.players):
+                print(f'Player {i+1} Number of Puddings: {player.puddings}')
+                print(f'Player {i+1} Final Score: {player.score}')
+            print('-'*100)
 
     def reset_player_hands(self):
         for player in self.players:
@@ -140,7 +199,7 @@ class Game:
                                 elif card == CardType.SQUID_NIGIRI:
                                     player.score += 6
                                     del played_card_types[j]
-                                    del played_card_types[j + i + 1]
+                                    del played_card_types[j + i]
                                     break
                         else:
                             del played_card_types[j]
@@ -180,23 +239,48 @@ class Game:
                         players_tied = [i for i, x in enumerate(maki_scores) if x == max_score]
                         number_players_tied = len(players_tied)
                         for player_i in players_tied:
-                            self.players[player_i] += int(3/number_players_tied)
+                            self.players[player_i].score += int(3/number_players_tied)
             else:
                 players_tied = [i for i, x in enumerate(maki_scores) if x == max_score]
                 number_players_tied = len(players_tied)
                 for player_i in players_tied:
-                    self.players[player_i] += int(6/number_players_tied)        
+                    self.players[player_i].score += int(6/number_players_tied)        
         
-
-
-
     def score_final(self):
-        pass
+        # Score most puddings
+        puddings_scores = [p.puddings for p in self.players]
+        max_score = max(puddings_scores)
+        # check if there were any puddings scored
+        if max_score > 0:
+            number_tied = puddings_scores.count(max_score)
+            if number_tied == 1:
+                # 1st place
+                player_i = puddings_scores.index(max_score)
+                del puddings_scores[player_i]
+                self.players[player_i].score += 6
+            else:
+                players_tied = [i for i, x in enumerate(puddings_scores) if x == max_score]
+                number_players_tied = len(players_tied)
+                for player_i in players_tied:
+                    self.players[player_i].score += int(6/number_players_tied) 
+
+        # Score least puddings
+        puddings_scores = [p.puddings for p in self.players]
+        min_score = min(puddings_scores)
+        # check if there were any puddings scored
+        if min_score > 0:
+            number_tied = puddings_scores.count(min_score)
+            if number_tied == 1:
+                # 1st place
+                player_i = puddings_scores.index(min_score)
+                del puddings_scores[player_i]
+                self.players[player_i].score -= 6
+            else:
+                players_tied = [i for i, x in enumerate(puddings_scores) if x == min_score]
+                number_players_tied = len(players_tied)
+                for player_i in players_tied:
+                    self.players[player_i].score -= int(6/number_players_tied)     
 
 
-g = Game(2)
-g.players[0].played_cards = [Card(CardType.WASABI), Card(CardType.WASABI), Card(CardType.SALMON_NIGIRI), Card(CardType.WASABI), Card(CardType.SALMON_NIGIRI), Card(CardType.MAKI_1)]
-g.players[1].played_cards = [Card(CardType.MAKI_3), Card(CardType.MAKI_3), Card(CardType.SASHIMI), Card(CardType.SASHIMI), Card(CardType.TEMPURA), Card(CardType.TEMPURA)]
-g.score_round()
-print(g.players[0].score)
-print(g.players[1].score)
+g = Game(n_players=2)
+g.simulate(print_rounds=True)
