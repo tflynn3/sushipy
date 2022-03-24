@@ -24,12 +24,5 @@ class Card:
     def __init__(self, card_type: CardType):
         self.card_type = card_type
 
-
-
     def __mul__(self, other):
         return [Card(self.card_type) for i in range(other)]
-
-
-
-
-# print(Card(CardType(1)))
