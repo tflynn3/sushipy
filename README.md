@@ -3,6 +3,7 @@ Python Implementation of Sushi Go
 
 <h2>Simulating a Game</h2>
 To run, initialize a game with a number of players between 2 and 5. You can simulate random choices with the simulate method.
+
 ```python
 my_game = Game()
 my_game.simulate(print_rounds=True)
