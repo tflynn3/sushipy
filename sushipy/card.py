@@ -26,3 +26,9 @@ class Card:
 
     def __mul__(self, other):
         return [Card(self.card_type) for i in range(other)]
+
+    def __str__(self):
+        return self.card_type.name.replace('_', ' ').title()
+
+    def __repr__(self) -> str:
+        return self.card_type.name.replace('_', ' ').title()
