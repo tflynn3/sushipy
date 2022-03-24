@@ -7,6 +7,7 @@ class Player(object):
         self.played_cards = []
         self.score = 0
         self.puddings = 0
+        self.maki = 0
 
     def __mul__(self, other):
         return [Player() for _ in range(other)]
